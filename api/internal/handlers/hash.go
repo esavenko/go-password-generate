@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -21,6 +22,15 @@ func HashPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	hash := sha256.Sum256([]byte(salt + string(password)))
 	hashString := hex.EncodeToString(hash[:])
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(hashString))
+	w.Header().Set("Content-Type", "application/json")
+	
+	respose := map[string]string{"hashed_password": hashString}
+	jsonResponse, err := json.Marshal(respose)
+
+	if err != nil {
+		http.Error(w, "Unable to create JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
 }
