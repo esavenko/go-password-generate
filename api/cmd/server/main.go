@@ -3,6 +3,7 @@ package main
 import (
 	"api/config"
 	"api/internal/handlers"
+	"api/internal/middleware"
 	"log"
 	"net/http"
 )
@@ -10,12 +11,16 @@ import (
 func main() {
 	config.LoadEnv()
 
-	http.HandleFunc("/generate", handlers.PasswordHandler)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/hash", handlers.HashPasswordHandler)
+	mux.HandleFunc("/generate", handlers.PasswordHandler)
+
+	mux.HandleFunc("/hash", handlers.HashPasswordHandler)
+
+	wrappedMux := middleware.CORSMiddleware(mux)
 
 	log.Println("Server started at :4200")
-	if err := http.ListenAndServe(":4200", nil); err != nil {
+	if err := http.ListenAndServe(":4200", wrappedMux); err != nil {
 		log.Fatal("Server failed:", err)
 	}
 }
