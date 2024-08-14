@@ -1,53 +1,42 @@
 <script lang="ts" setup>
 import { Input } from '@/components/ui/input';
 import { ClipboardCopy, Loader2 } from 'lucide-vue-next';
-import type { Ref } from 'vue';
 import type { PasswordTypes, HashedPassword } from '@/types/password.types';
 
-const password: Ref<PasswordTypes | null> = ref(null);
-const displayedPassword: Ref<string | null> = ref('');
-const loading: Ref<Boolean> = ref(false);
+let displayedPassword = ref<PasswordTypes>();
 
-const generatePassword = async (): Promise<void> => {
-  loading.value = true;
-  try {
-    const response = await fetch('http://localhost:4200/generate');
-    if (!response.ok) throw new Error('Network error');
+const { data: password, pending } = useFetch<PasswordTypes>('/api/password');
 
-    const data = (await response.json()) as PasswordTypes;
-    password.value = data;
-    displayedPassword.value = data.password;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
+const generatePassword = () => {
+  if (!password.value?.password) return;
+
+  displayedPassword.value!.password = JSON.stringify(password.value?.password);
 };
 
-const getHashPassword = async (password: string): Promise<string | null> => {
-  try {
-    const response = await fetch('http://localhost:4200/hash', {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    });
+// const getHashPassword = async (password: string): Promise<string | null> => {
+//   try {
+//     const response = await fetch('http://localhost:4200/hash', {
+//       method: 'POST',
+//       body: JSON.stringify({ password }),
+//     });
+//
+//     const data: HashedPassword = await response.json();
+//
+//     return data.hashed_password;
+//   } catch (e) {
+//     console.error(e);
+//     return null;
+//   }
+// };
 
-    const data: HashedPassword = await response.json();
-
-    return data.hashed_password;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-};
-
-const hashPassword = async () => {
-  if (displayedPassword.value) {
-    loading.value = true;
-    const hashed = await getHashPassword(displayedPassword.value);
-    displayedPassword.value = hashed;
-    loading.value = false;
-  }
-};
+// const hashPassword = async () => {
+//   if (displayedPassword.value) {
+//     loading.value = true;
+//     const hashed = await getHashPassword(displayedPassword.value);
+//     displayedPassword.value = hashed || '';
+//     loading.value = false;
+//   }
+// };
 </script>
 
 <template>
@@ -77,7 +66,7 @@ const hashPassword = async () => {
           variant="secondary"
           @click="generatePassword"
         >
-          <Loader2 v-if="loading" class="w-4 h-4 mr-2 animate-spin" />
+          <Loader2 v-if="pending" class="w-4 h-4 mr-2 animate-spin" />
           Сгенерировать пароль
         </Button>
 
