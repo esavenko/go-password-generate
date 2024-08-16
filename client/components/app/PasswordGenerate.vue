@@ -1,12 +1,33 @@
 <script lang="ts" setup>
-import { Input } from '@/components/ui/input';
-import { ClipboardCopy, Loader2 } from 'lucide-vue-next';
-
 import { usePassword } from '@/stores/password.store';
 import { useHashPassword } from '@/stores/hash.store';
 
+import { Input } from '@/components/ui/input';
+import { ClipboardCopy, Loader2 } from 'lucide-vue-next';
+
 const passwordStore = usePassword();
-const hashPassword = useHashPassword();
+const hashStore = useHashPassword();
+
+const passwordToShow = computed(() => {
+  return hashStore.hashedPassword
+    ? hashStore.hashedPassword
+    : passwordStore.displayedPassword;
+});
+
+const handleGenerate = async (): Promise<void> => {
+  await passwordStore.generatePassword();
+  hashStore.hashedPassword = '';
+};
+
+const handleHash = async (): Promise<void> => {
+  if (passwordStore.displayedPassword) {
+    await hashStore.hashPassword(passwordStore.displayedPassword);
+  }
+};
+
+const disabledHashBtn = computed(
+  () => passwordStore.displayedPassword.length === 0,
+);
 </script>
 
 <template>
@@ -16,12 +37,12 @@ const hashPassword = useHashPassword();
 
       <div class="relative w-full mt-10">
         <Input
-          disabled
+          readonly
           id="search"
           type="text"
           placeholder="Сгенерировать пароль"
           class="h-20"
-          v-model="passwordStore.displayedPassword"
+          v-model="passwordToShow"
         />
         <span
           class="absolute end-0 inset-y-0 flex items-center justify-center px-2"
@@ -34,7 +55,7 @@ const hashPassword = useHashPassword();
         <Button
           class="w-full h-12 text-base hover:bg-accent-foreground hover:text-slate-300 ease-in"
           variant="secondary"
-          @click="passwordStore.generatePassword"
+          @click="handleGenerate"
         >
           <Loader2
             v-if="passwordStore.isLoading"
@@ -46,10 +67,11 @@ const hashPassword = useHashPassword();
         <Button
           class="w-full h-12 text-base hover:bg-accent-foreground hover:text-slate-300 ease-in"
           variant="secondary"
-          @click="hashPassword.hashPassword(passwordStore.displayedPassword)"
+          @click="handleHash"
+          :disabled="disabledHashBtn"
         >
           <Loader2
-            v-if="hashPassword.isLoading"
+            v-if="hashStore.isLoading"
             class="w-4 h-4 mr-2 animate-spin"
           />
           Хэшировать пароль

@@ -1,4 +1,5 @@
-import type { HashedPassword, PasswordTypes } from '@/types/password.types';
+import type { PasswordTypes } from '@/types/password.types';
+import { generatePassword as generatePasswordService } from '@/server/services/passwordServise.service';
 
 export const usePassword = defineStore('password', () => {
   const isLoading = ref<boolean>(false);
@@ -7,10 +8,14 @@ export const usePassword = defineStore('password', () => {
   const generatePassword = async () => {
     isLoading.value = true;
 
-    const password = await $fetch<PasswordTypes>('/api/password');
-    displayedPassword.value = password.password;
-
-    isLoading.value = false;
+    try {
+      const data: PasswordTypes = await generatePasswordService();
+      displayedPassword.value = data.password;
+    } catch (e) {
+      console.error('Error generating:', e);
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   return {
