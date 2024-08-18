@@ -1,28 +1,14 @@
 <script lang="ts" setup>
+// stores
 import { usePassword } from '@/stores/password.store';
-import { useHashPassword } from '@/stores/hash.store';
 
 import { Input } from '@/components/ui/input';
 import { ClipboardCopy, Loader2 } from 'lucide-vue-next';
-
+// TODO Реактивно декомпозировать stores
 const passwordStore = usePassword();
-const hashStore = useHashPassword();
-
-const passwordToShow = computed(() => {
-  return hashStore.hashedPassword
-    ? hashStore.hashedPassword
-    : passwordStore.displayedPassword;
-});
 
 const handleGenerate = async (): Promise<void> => {
   await passwordStore.generatePassword();
-  hashStore.hashedPassword = '';
-};
-
-const handleHash = async (): Promise<void> => {
-  if (passwordStore.displayedPassword) {
-    await hashStore.hashPassword(passwordStore.displayedPassword);
-  }
 };
 
 const disabledHashBtn = computed(
@@ -42,7 +28,7 @@ const disabledHashBtn = computed(
           type="text"
           placeholder="Сгенерировать пароль"
           class="h-20"
-          v-model="passwordToShow"
+          v-model="passwordStore.displayedPassword"
         />
         <span
           class="absolute end-0 inset-y-0 flex items-center justify-center px-2"
@@ -67,11 +53,11 @@ const disabledHashBtn = computed(
         <Button
           class="w-full h-12 text-base hover:bg-accent-foreground hover:text-slate-300 ease-in"
           variant="secondary"
-          @click="handleHash"
+          @click="passwordStore.hashPassword"
           :disabled="disabledHashBtn"
         >
           <Loader2
-            v-if="hashStore.isLoading"
+            v-if="passwordStore.isLoading"
             class="w-4 h-4 mr-2 animate-spin"
           />
           Хэшировать пароль
