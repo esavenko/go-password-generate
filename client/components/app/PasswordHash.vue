@@ -1,17 +1,22 @@
 <script lang="ts" setup>
-// stores
 import { useHashPassword } from '@/stores/hash.store';
+import { useClipboard } from '@vueuse/core';
+
+const { copy, copied } = useClipboard();
 
 import { Input } from '@/components/ui/input';
-import { ClipboardCopy, Loader2 } from 'lucide-vue-next';
+import { ClipboardCopy, Loader2, ClipboardCheck } from 'lucide-vue-next';
 
 const hashStore = useHashPassword();
+
+const isLoading = computed(() => hashStore.isLoading);
+const hashPassword = computed(() => hashStore.hashPassword);
 
 const enteredPassword = ref<string | null>('');
 
 const handleHash = async (): Promise<void> => {
   if (enteredPassword.value) {
-    await hashStore.hashPassword(enteredPassword.value);
+    await hashPassword.value(enteredPassword.value);
     enteredPassword.value = hashStore.hashedPassword;
   }
 };
@@ -33,9 +38,17 @@ const disabledHashBtn = computed(() => enteredPassword.value!.length === 0);
           v-model="enteredPassword"
         />
         <span
+          @click="copy(enteredPassword as string)"
           class="absolute end-0 inset-y-0 flex items-center justify-center px-2"
         >
-          <ClipboardCopy class="size-8 text-muted-foreground cursor-pointer" />
+          <ClipboardCopy
+            v-if="!copied"
+            class="size-8 text-muted-foreground cursor-pointer"
+          />
+          <ClipboardCheck
+            v-else
+            class="size-8 text-muted-foreground cursor-pointer"
+          />
         </span>
       </div>
 
@@ -46,10 +59,7 @@ const disabledHashBtn = computed(() => enteredPassword.value!.length === 0);
           @click="handleHash"
           :disabled="disabledHashBtn"
         >
-          <Loader2
-            v-if="hashStore.isLoading"
-            class="w-4 h-4 mr-2 animate-spin"
-          />
+          <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
           Хэшировать пароль
         </Button>
       </div>
