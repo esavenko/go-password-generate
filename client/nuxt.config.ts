@@ -9,9 +9,21 @@ export default defineNuxtConfig({
       hashApi: process.env.NUXT_PUBLIC_API_HASH_API,
     },
   },
-  modules: ['shadcn-nuxt', '@nuxtjs/tailwindcss', '@nuxt/image', '@pinia/nuxt'],
+  modules: [
+    'shadcn-nuxt',
+    '@nuxtjs/tailwindcss',
+    '@nuxt/image',
+    '@pinia/nuxt',
+    '@vueuse/nuxt',
+    '@nuxtjs/color-mode',
+  ],
   shadcn: {
     prefix: '',
     componentDir: './components/ui',
+  },
+  colorMode: {
+    classSuffix: '',
+    preference: 'light',
+    fallback: 'light',
   },
 });
