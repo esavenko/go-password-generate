@@ -18,10 +18,11 @@ import { Languages } from 'lucide-vue-next';
           >Хэшировать</NuxtLink
         >
       </div>
-      <div>
+      <div class="flex items-center gap-10">
         <Languages
           class="w-12 h-12 cursor-pointer text-slate-200 hover:text-slate-500 ease"
         />
+        <SharedThemeButton />
       </div>
     </div>
   </header>
